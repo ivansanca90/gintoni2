@@ -75,7 +75,7 @@
             font-family: 'Press Start 2P', cursive;
         }
 
-        #start-button, #restart-button {
+        #start-button, #retry-button, #restart-button {
             padding: 15px 40px;
             font-size: 24px;
             background: #FF0000;
@@ -87,8 +87,8 @@
         }
 
         #player {
-            width: 100px;
-            height: 100px;
+            width: 150px;
+            height: 150px;
             position: absolute;
             bottom: 0;
             background: url('silvia.png') no-repeat center center;
@@ -104,6 +104,14 @@
             border-radius: 25%;
         }
 
+        .ivan {
+            width: 60px;
+            height: 60px;
+            position: absolute;
+            background: url('ivan.png') no-repeat center center;
+            background-size: cover;
+        }
+
         #score {
             position: absolute;
             top: 20px;
@@ -114,8 +122,8 @@
         }
 
         #qr-code {
-            width: 200px;
-            height: 200px;
+            width: 150px;
+            height: 150px;
             background: #fff;
             margin: 20px;
         }
@@ -126,6 +134,7 @@
     <div id="start-screen">
         <h1 class="title">Salva Gin e Toni</h1>
         <p class="text">Cattura 20 gatti per vincere!</p>
+        <p class="text">Ma attenta a Ivan!</p>
         <button id="start-button">START</button>
     </div>
 
@@ -135,17 +144,19 @@
     </div>
 
     <div id="win-screen">
-        <h1 class="title">Complimenti hai vinto un premio!</h1>
-        <p class="text">Clicca qui e scansiona il QR code.</p>
-        <div id="qr-code">[Spazio per QR Code]</div>
-        <p class="text">Utilizza le credenziali fornite.</p>
+        <h1 class="title">HAI VINTO!!!</h1>
+        <p class="text">scansiona il QR code per il regalo!</p>
+        <div id="qr-code"><img src="qr.png" alt="QR Code" style="width: 100%; height: 100%;"></div>
+        <p class="text">dovrai usare queste crednziali:</p>
+        <p class="text">mail: pintoivan90@gmail.com</p>
+        <p class="text">password: Formentera2024!</p>
         <button id="restart-button">Rigioca</button>
     </div>
 
     <div id="game-over-screen">
         <h1 class="title">Game Over</h1>
         <p class="text">Ritenta la prossima volta!</p>
-        <button id="restart-button">Riprova</button>
+        <button id="retry-button">Riprova</button>
     </div>
 
     <script>
@@ -156,6 +167,7 @@
         const scoreElement = document.getElementById('score');
         const winScreen = document.getElementById('win-screen');
         const gameOverScreen = document.getElementById('game-over-screen');
+        const retryButton = document.getElementById('retry-button');
         const restartButton = document.getElementById('restart-button');
         const backgroundMusic = document.getElementById('background-music');
 
@@ -163,9 +175,11 @@
         let gameSpeed = 2000;
         let isGameActive = false;
         let catCount = 0;
+        let spawnCounter = 0;
         let maxX;
 
         const fallingCats = [];
+        const fallingIvans = [];
 
         function updateMaxX() {
             maxX = window.innerWidth - player.offsetWidth;
@@ -174,6 +188,7 @@
         window.addEventListener('resize', updateMaxX);
 
         startButton.addEventListener('click', startGame);
+        retryButton.addEventListener('click', restartGame);
         restartButton.addEventListener('click', restartGame);
 
         function startGame() {
@@ -185,9 +200,10 @@
             isGameActive = true;
             score = 0;
             catCount = 0;
+            spawnCounter = 0;
             scoreElement.textContent = "Gatti catturati: 0";
             updateMaxX();
-            spawnCats();
+            spawnEntities();
             startFallingLoop();
         }
 
@@ -232,8 +248,21 @@
             fallingCats.push({ cat, posY: 0 });
         }
 
+        function createIvan() {
+            if (!isGameActive) return;
+
+            const ivan = document.createElement('div');
+            ivan.className = 'ivan';
+            const maxXIvan = window.innerWidth - 60;
+            ivan.style.left = Math.random() * maxXIvan + 'px';
+            ivan.style.top = '0px';
+
+            gameContainer.appendChild(ivan);
+            fallingIvans.push({ ivan, posY: 0 });
+        }
+
         function startFallingLoop() {
-            function updateFallingCats() {
+            function updateFallingEntities() {
                 if (!isGameActive) return;
 
                 fallingCats.forEach((fallingCat, index) => {
@@ -256,17 +285,34 @@
                             winGame();
                         }
                     } else if (fallingCat.posY > window.innerHeight) {
-                        gameOver();
                         fallingCats.splice(index, 1);
                         cat.remove();
                         catCount--;
                     }
                 });
 
-                requestAnimationFrame(updateFallingCats);
+                fallingIvans.forEach((fallingIvan, index) => {
+                    const { ivan, posY } = fallingIvan;
+                    fallingIvan.posY += 5;
+                    ivan.style.top = `${fallingIvan.posY}px`;
+
+                    const ivanRect = ivan.getBoundingClientRect();
+                    const playerRect = player.getBoundingClientRect();
+
+                    if (checkCollision(ivanRect, playerRect)) {
+                        gameOver();
+                        fallingIvans.splice(index, 1);
+                        ivan.remove();
+                    } else if (fallingIvan.posY > window.innerHeight) {
+                        fallingIvans.splice(index, 1);
+                        ivan.remove();
+                    }
+                });
+
+                requestAnimationFrame(updateFallingEntities);
             }
 
-            requestAnimationFrame(updateFallingCats);
+            requestAnimationFrame(updateFallingEntities);
         }
 
         function checkCollision(rect1, rect2) {
@@ -276,10 +322,16 @@
                     rect1.top > rect2.bottom);
         }
 
-        function spawnCats() {
+        function spawnEntities() {
             if (isGameActive) {
-                createCat();
-                setTimeout(spawnCats, gameSpeed);
+                if (spawnCounter % 4 === 0 && spawnCounter !== 0) {
+                    createIvan();
+                } else {
+                    createCat();
+                }
+
+                spawnCounter++;
+                setTimeout(spawnEntities, gameSpeed);
             }
         }
 
