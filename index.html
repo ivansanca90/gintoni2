@@ -7,7 +7,7 @@
 
         body {
             margin: 0;
-            padding: 0;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
             background: #87CEEB;
             touch-action: none;
         }
@@ -22,6 +22,7 @@
             background: url('cielo.png') no-repeat center center;
             background-size: cover;
             text-align: center;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
         #game-container {
@@ -31,6 +32,7 @@
             background: url('cielo.png') no-repeat center center;
             background-size: cover;
             display: none;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
         #win-screen {
@@ -40,20 +42,35 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: #87CEEB;
+            background: url('cielo.png') no-repeat center center;
+            background-size: cover;
             text-align: center;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        #game-over-screen {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: url('cielo.png') no-repeat center center;
+            background-size: cover;
+            text-align: center;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
         .title {
             font-size: 32px;
-            color: #333;
+            color: white;
             margin: 20px;
             font-family: 'Press Start 2P', cursive;
         }
 
         .text {
             font-size: 18px;
-            color: #333;
+            color: white;
             margin: 20px;
             font-family: 'Press Start 2P', cursive;
         }
@@ -61,7 +78,7 @@
         #start-button, #restart-button {
             padding: 15px 40px;
             font-size: 24px;
-            background: #4CAF50;
+            background: #FF0000;
             color: white;
             border: none;
             border-radius: 25px;
@@ -70,16 +87,16 @@
         }
 
         #player {
-            width: 100px; /* Aumentata ulteriormente la dimensione del personaggio */
+            width: 100px;
             height: 100px;
             position: absolute;
-            bottom: 0; /* Posizionato completamente in basso */
+            bottom: 0;
             background: url('silvia.png') no-repeat center center;
             background-size: cover;
         }
 
         .cat {
-            width: 50px; /* Aumentata la dimensione del gatto */
+            width: 50px;
             height: 50px;
             position: absolute;
             background-size: cover;
@@ -92,7 +109,7 @@
             top: 20px;
             left: 20px;
             font-size: 20px;
-            color: #333;
+            color: white;
             font-family: 'Press Start 2P', cursive;
         }
 
@@ -125,6 +142,12 @@
         <button id="restart-button">Rigioca</button>
     </div>
 
+    <div id="game-over-screen">
+        <h1 class="title">Game Over</h1>
+        <p class="text">Ritenta la prossima volta!</p>
+        <button id="restart-button">Riprova</button>
+    </div>
+
     <script>
         const startScreen = document.getElementById('start-screen');
         const startButton = document.getElementById('start-button');
@@ -132,12 +155,14 @@
         const player = document.getElementById('player');
         const scoreElement = document.getElementById('score');
         const winScreen = document.getElementById('win-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
         const restartButton = document.getElementById('restart-button');
+        const backgroundMusic = document.getElementById('background-music');
 
         let score = 0;
-        let gameSpeed = 2000; // Ridotto il tempo per rendere il gioco più difficile
+        let gameSpeed = 2000;
         let isGameActive = false;
-        let catCount = 0; // Contatore per i gatti attualmente in gioco
+        let catCount = 0;
         let maxX;
 
         const fallingCats = [];
@@ -154,7 +179,9 @@
         function startGame() {
             startScreen.style.display = 'none';
             winScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
             gameContainer.style.display = 'block';
+            backgroundMusic.play(); // Avvia la musica
             isGameActive = true;
             score = 0;
             catCount = 0;
@@ -166,7 +193,9 @@
 
         function restartGame() {
             winScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
             startScreen.style.display = 'flex';
+            backgroundMusic.play(); // Riavvia la musica
         }
 
         document.addEventListener('mousemove', (e) => {
@@ -187,16 +216,15 @@
         }, { passive: false });
 
         function createCat() {
-            if (!isGameActive || catCount >= 2) return; // Massimo 2 gatti contemporaneamente
+            if (!isGameActive || catCount >= 2) return;
 
             catCount++;
             const cat = document.createElement('div');
             cat.className = 'cat';
-            const maxXCat = window.innerWidth - 50; // Aggiornato per la nuova dimensione dei gatti
+            const maxXCat = window.innerWidth - 50;
             cat.style.left = Math.random() * maxXCat + 'px';
             cat.style.top = '0px';
             
-            // Alterna tra le immagini dei gatti
             const catType = Math.random() > 0.5 ? "pino.png" : "cat2.png";
             cat.style.backgroundImage = `url('${catType}')`;
 
@@ -210,7 +238,7 @@
 
                 fallingCats.forEach((fallingCat, index) => {
                     const { cat, posY } = fallingCat;
-                    fallingCat.posY += 5; // Aumentata la velocità di caduta per rendere il gioco più difficile
+                    fallingCat.posY += 5;
                     cat.style.top = `${fallingCat.posY}px`;
 
                     const catRect = cat.getBoundingClientRect();
@@ -222,16 +250,13 @@
                         catCount--;
                         score++;
                         scoreElement.textContent = `Gatti catturati: ${score}`;
-                        gameSpeed = Math.max(800, gameSpeed - 100); // Aumentata la difficoltà riducendo il tempo minimo
+                        gameSpeed = Math.max(800, gameSpeed - 100);
 
                         if (score >= 20) {
                             winGame();
                         }
                     } else if (fallingCat.posY > window.innerHeight) {
-                        alert("Game Over!");
-                        isGameActive = false;
-                        startScreen.style.display = 'flex';
-                        gameContainer.style.display = 'none';
+                        gameOver();
                         fallingCats.splice(index, 1);
                         cat.remove();
                         catCount--;
@@ -262,6 +287,12 @@
             isGameActive = false;
             gameContainer.style.display = 'none';
             winScreen.style.display = 'flex';
+        }
+
+        function gameOver() {
+            isGameActive = false;
+            gameContainer.style.display = 'none';
+            gameOverScreen.style.display = 'flex';
         }
     </script>
 </body>
