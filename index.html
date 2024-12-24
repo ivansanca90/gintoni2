@@ -133,7 +133,7 @@
 <body>
     <div id="start-screen">
         <h1 class="title">Salva Gin e Toni</h1>
-        <p class="text">Cattura 20 gatti per vincere!</p>
+        <p class="text">Cattura 30 gatti per vincere!</p>
         <p class="text">Ma attenta a Ivan!</p>
         <button id="start-button">START</button>
     </div>
@@ -265,7 +265,7 @@
 
                 fallingCats.forEach((fallingCat, index) => {
                     const { cat, posY } = fallingCat;
-                    fallingCat.posY += 5;
+                    fallingCat.posY += 8;
                     cat.style.top = `${fallingCat.posY}px`;
 
                     const catRect = cat.getBoundingClientRect();
@@ -279,7 +279,7 @@
                         scoreElement.textContent = `Gatti catturati: ${score}`;
                         gameSpeed = Math.max(800, gameSpeed - 100);
 
-                        if (score >= 20) {
+                        if (score >= 30) {
                             winGame();
                         }
                     } else if (fallingCat.posY > window.innerHeight) {
@@ -291,7 +291,7 @@
 
                 fallingIvans.forEach((fallingIvan, index) => {
                     const { ivan, posY } = fallingIvan;
-                    fallingIvan.posY += 5;
+                    fallingIvan.posY += 8;
                     ivan.style.top = `${fallingIvan.posY}px`;
 
                     const ivanRect = ivan.getBoundingClientRect();
